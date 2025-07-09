@@ -1,0 +1,79 @@
+services:
+  rabbitmq:
+    image: rabbitmq
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - 5672:5672
+      - 15672:15672
+    networks:
+      - backend
+    env_file:
+       - 'apps.env'
+    configs:
+      - source: rabbitmq-plugins
+        target: /etc/rabbitmq/enabled_plugins
+    volumes:
+      - /home/josh/rabbitmq:/var/lib/rabbitmq/
+      - /home/josh/logs:/var/log/rabbitmq
+  surveillance:
+    build:
+      context: ./services/surveillance
+      dockerfile: ./services/surveillance/Dockerfile
+    container_name: surveillance
+    env_file:
+       - 'apps.env'
+    restart: always
+    networks:
+      - backend
+  notification:
+    build:
+      context: ./services/notification
+      dockerfile: ./services/notification/Dockerfile
+    container_name: notification
+    env_file:
+       - 'apps.env'
+    restart: always
+    networks:
+      - backend
+  logger:
+    build:
+      context: ./services/logger
+      dockerfile: ./services/logger/Dockerfile
+    container_name: logger
+    env_file:
+       - 'apps.env'
+    restart: always
+    networks:
+      - backend
+    volumes:
+      - /home/josh/logs:/var/log/logger
+  voice:
+    build:
+      context: ./services/voice
+      dockerfile: ./services/voice/Dockerfile
+    container_name: voice
+    env_file:
+       - 'apps.env'
+    restart: always
+    networks:
+      - backend
+  backup:
+    build:
+      context: ./services/backup
+      dockerfile: ./services/backup/Dockerfile
+    container_name: backup
+    volumes:
+      - /home/josh/data:/data/backup
+      - /home/josh/logs:/data/logs
+    env_file:
+       - 'apps.env'
+    restart: always
+    network_mode: host
+    networks:
+      - backend
+configs:
+  rabbitmq-plugins:
+    content: "[rabbitmq_management]." 
+networks:
+  backend:
